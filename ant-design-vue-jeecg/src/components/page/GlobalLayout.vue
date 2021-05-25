@@ -49,11 +49,21 @@
           :collapsed="false"
           :collapsible="true"></side-menu>
       </a-drawer>
+      <!--这里通过 iteminfo有没有children来判断有没有二三级菜单从而动态添加侧边菜单-->
+      <side-menu
+        mode="inline"
+        :menus="sideMenu"
+        @menuSelect="menuSelect"
+        :theme="navTheme"
+        :collapsed="false"
+        :collapsible="true"
+      ></side-menu>
     </template>
 
     <a-layout
       :class="[layoutMode, `content-width-${contentWidth}`]"
       :style="{ paddingLeft: fixSiderbar && isDesktop() ? `${sidebarOpened ? 200 : 80}px` : '0' }">
+      <!-- layout header -->
       <!-- layout header -->
       <global-header
         :mode="layoutMode"
@@ -62,16 +72,18 @@
         :collapsed="collapsed"
         :device="device"
         @toggle="toggle"
+        @iteminfoto="iteminfoto"
       />
 
-      <!-- layout content -->
-      <a-layout-content :style="{ height: '100%', paddingTop: fixedHeader ? '59px' : '0' }">
-        <slot></slot>
-      </a-layout-content>
+      <a-layout>
+        <a-layout-content :style="{ height: '100%', paddingTop: fixedHeader ? '59px' : '0' }">
+          <slot></slot>
+        </a-layout-content>
+      </a-layout>
 
       <!-- layout footer -->
       <a-layout-footer style="padding: 0px">
-        <global-footer/>
+<!--        <global-footer/>-->
       </a-layout-footer>
     </a-layout>
 
@@ -99,7 +111,7 @@
     components: {
       SideMenu,
       GlobalHeader,
-      GlobalFooter,
+      GlobalFooter
       // update-start---- author:os_chengtgen -- date:20190830 --  for:issues/463 -编译主题颜色已生效，但还一直转圈，显示主题 正在编译 ------
       // // SettingDrawer
       // 注释这个因为在个人设置模块已经加载了SettingDrawer页面
@@ -110,8 +122,9 @@
     data() {
       return {
         collapsed: false,
-        activeMenu:{},
-        menus: []
+        activeMenu: {},
+        menus: [],
+        sideMenu: []
       }
     },
     computed: {
@@ -131,11 +144,11 @@
       //--update-begin----author:scott---date:20190320------for:根据后台菜单配置，判断是否路由菜单字段，动态选择是否生成路由（为了支持参数URL菜单）------
       //this.menus = this.mainRouters.find((item) => item.path === '/').children;
       this.menus = this.permissionMenuList
-      
+
       //--update-begin----author:liusq---date:20210223------for:关于测边菜单遮挡内容问题详细说明 #2255
-      this.collapsed=!this.sidebarOpened;
+      this.collapsed = !this.sidebarOpened
       //--update-begin----author:liusq---date:20210223------for:关于测边菜单遮挡内容问题详细说明 #2255
-  
+
       // 根据后台配置菜单，重新排序加载路由信息
       //console.log('----加载菜单逻辑----')
       //console.log(this.mainRouters)
@@ -145,6 +158,13 @@
     },
     methods: {
       ...mapActions(['setSidebar']),
+      iteminfoto: function(data) {
+        if (data.children)
+          this.sideMenu = data.children
+      },
+      iteminfo: function(data) {
+        console.log(data)
+      },
       toggle() {
         this.collapsed = !this.collapsed
         this.setSidebar(!this.collapsed)
@@ -156,21 +176,21 @@
         }
       },
       //update-begin-author:taoyan date:20190430 for:动态路由title显示配置的菜单title而不是其对应路由的title
-      myMenuSelect(value){
+      myMenuSelect(value) {
         //此处触发动态路由被点击事件
-        this.findMenuBykey(this.menus,value.key)
-        this.$emit("dynamicRouterShow",value.key,this.activeMenu.meta.title)
+        this.findMenuBykey(this.menus, value.key)
+        this.$emit('dynamicRouterShow', value.key, this.activeMenu.meta.title)
         // update-begin-author:sunjianlei date:20191223 for: 修复刷新后菜单Tab名字显示异常
         let storeKey = 'route:title:' + this.activeMenu.path
         this.$ls.set(storeKey, this.activeMenu.meta.title)
         // update-end-author:sunjianlei date:20191223 for: 修复刷新后菜单Tab名字显示异常
       },
-      findMenuBykey(menus,key){
-        for(let i of menus){
-          if(i.path==key){
-            this.activeMenu = {...i}
-          }else if(i.children && i.children.length>0){
-            this.findMenuBykey(i.children,key)
+      findMenuBykey(menus, key) {
+        for (let i of menus) {
+          if (i.path == key) {
+            this.activeMenu = { ...i }
+          } else if (i.children && i.children.length > 0) {
+            this.findMenuBykey(i.children, key)
           }
         }
       }
@@ -207,14 +227,17 @@
        * ant-table-wrapper
        * 覆盖的表格手机模式样式，如果想修改在手机上表格最低宽度，可以在这里改动
        */
+
       .ant-table-wrapper {
         .ant-table-content {
           overflow-y: auto;
         }
+
         .ant-table-body {
           min-width: 800px;
         }
       }
+
       .sidemenu {
         .ant-header-fixedHeader {
 
@@ -226,12 +249,14 @@
 
       .topmenu {
         /* 必须为 topmenu  才能启用流式布局 */
+
         &.content-width-Fluid {
           .header-index-wide {
             margin-left: 0;
           }
         }
       }
+
       .header, .top-nav-header-index {
         .user-wrapper .action {
           padding: 0 12px;
@@ -272,7 +297,9 @@
           width: 100%;
         }
       }
+
       /* 必须为 topmenu  才能启用流式布局 */
+
       &.content-width-Fluid {
         .header-index-wide {
           max-width: unset;
@@ -406,6 +433,7 @@
               }
             }
           }
+
           //
         }
       }
@@ -480,6 +508,7 @@
           float: right;
           height: 59px;
           overflow: hidden;
+
           .action:hover {
             background-color: rgba(0, 0, 0, 0.05);
           }
@@ -512,6 +541,7 @@
             }
           }
         }
+
         .header-index-wide .header-index-left .trigger:hover {
           background: rgba(255, 255, 255, 0.3);
         }
@@ -546,8 +576,10 @@
         background-color: rgb(0, 21, 41);
       }
     }
+
     &.light {
       box-shadow: none;
+
       .ant-drawer-content {
         background-color: #fff;
       }
@@ -660,6 +692,7 @@
           padding-right: 8px;
           width: auto;
         }
+
         .ant-form-item-control {
           height: 32px;
           line-height: 32px;

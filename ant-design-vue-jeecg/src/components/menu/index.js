@@ -97,14 +97,23 @@ export default {
 
     // render
     renderItem(menu) {
-      if (!menu.hidden) {
+      /*if (!menu.hidden) {
         return menu.children && !menu.alwaysShow ? this.renderSubMenu(menu) : this.renderMenuItem(menu)
+      }
+      return null*/
+      if (!menu.hidden) {
+        // 测试顶部导航hover 二三级菜单不显示【不生成】
+        return this.renderMenuItem(menu)
       }
       return null
     },
     renderMenuItem(menu) {
       const target = menu.meta.target || null
-      const tag = target && 'a' || 'router-link'
+      var tag = target && 'a' || 'router-link'
+      // 测试顶部item点击后不跳转
+      if (menu.hasOwnProperty('children')) {
+        tag = 'a'
+      }
       let props = { to: { name: menu.name } }
       if (menu.route && menu.route === '0') {
         props = { to: { path: menu.path } }
@@ -120,14 +129,37 @@ export default {
           item.meta = Object.assign(item.meta, { hidden: true })
         })
       }
-
+      var on = {
+        click: () => {
+          this.$emit('iteminfo', menu)
+        }
+      }
+      var cc
+      if (menu.hasOwnProperty('children')) {
+        cc =
+          <Item {...{ key: menu.path }}>
+            <tag  {...{ on: on }}>
+              {this.renderIcon(menu.meta.icon)}
+              <span>{menu.meta.title}</span>
+            </tag>
+          </Item>
+      } else {
+        cc =
+          <Item {...{ key: menu.path }} {...{ on: on }}>
+            <tag {...{ props, attrs }} >
+              {this.renderIcon(menu.meta.icon)}
+              <span>{menu.meta.title}</span>
+            </tag>
+          </Item>
+      }
       return (
-        <Item {...{ key: menu.path }}>
+        cc
+        /*<Item {...{ key: menu.path }}>
           <tag {...{ props, attrs }}>
             {this.renderIcon(menu.meta.icon)}
             <span>{menu.meta.title}</span>
           </tag>
-        </Item>
+        </Item>*/
       )
     },
     renderSubMenu(menu) {
@@ -158,6 +190,62 @@ export default {
   },
 
   render() {
+    if (this.menu.hasOwnProperty('children')) {
+      console.log(this.menu)
+      const { mode, theme, menu } = this
+      const props = {
+        mode: mode,
+        theme: theme,
+        openKeys: this.openKeys
+      }
+      const on = {
+        select: obj => {
+          this.selectedKeys = obj.selectedKeys
+          this.$emit('select', obj)
+        },
+        openChange: this.onOpenChange
+      }
+      // var subinfo=this.renderSubMenu(menu)
+      const menuTree = menu.children.map(item => {
+        if (item.hidden) {
+          return null
+        }
+        return this.renderItem(item)
+      })
+      // {...{ props, on: on }}
+      return (
+        <Menu vModel={this.selectedKeys} {...{ props, on: on }}>
+          {menuTree}
+        </Menu>
+      )
+    } else {
+      const { mode, theme, menu } = this
+      const props = {
+        mode: mode,
+        theme: theme,
+        openKeys: this.openKeys
+      }
+      const on = {
+        select: obj => {
+          this.selectedKeys = obj.selectedKeys
+          this.$emit('select', obj)
+        },
+        openChange: this.onOpenChange
+      }
+
+      const menuTree = menu.map(item => {
+        if (item.hidden) {
+          return null
+        }
+        return this.renderItem(item)
+      })
+      // {...{ props, on: on }}
+      return (
+        <Menu vModel={this.selectedKeys} {...{ props, on: on }}>
+          {menuTree}
+        </Menu>
+      )
+    }
     const { mode, theme, menu } = this
     const props = {
       mode: mode,

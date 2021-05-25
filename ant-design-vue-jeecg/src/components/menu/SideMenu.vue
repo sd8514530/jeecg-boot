@@ -5,27 +5,43 @@
     :collapsible="collapsible"
     v-model="collapsed"
     :trigger="null">
-    <logo />
+    <logo/>
+    <!--在此处添加按钮并添加点击事件-->
+    <!--    <a-icon :type="lalal?'menu-unfold':'menu-fold'" @click='jjjjj' class="collapsedIcon"/>-->
     <s-menu
-      :collapsed="collapsed"
+      :collapsed="true"
       :menu="menus"
       :theme="theme"
       @select="onSelect"
       :mode="mode"
-      :style="smenuStyle">
+      :style="smenuStyle"
+      typeM='side'>
     </s-menu>
+    <!-- <s-menu
+       :collapsed="collapsed"
+       :menu="menus"
+       :theme="theme"
+       @select="onSelect"
+       :mode="mode"
+       :style="smenuStyle">
+     </s-menu>-->
   </a-layout-sider>
 
 </template>
 
 <script>
-  import ALayoutSider from "ant-design-vue/es/layout/Sider"
+  import ALayoutSider from 'ant-design-vue/es/layout/Sider'
   import Logo from '../tools/Logo'
   import SMenu from './index'
   import { mixin, mixinDevice } from '@/utils/mixin.js'
 
   export default {
-    name: "SideMenu",
+    data() {
+      return {
+        lalal: false
+      }
+    },
+    name: 'SideMenu',
     components: { ALayoutSider, Logo, SMenu },
     mixins: [mixin, mixinDevice],
     props: {
@@ -54,10 +70,11 @@
         required: true
       }
     },
-    computed:{
+    computed: {
       smenuStyle() {
         let style = { 'padding': '0' }
-        if (this.fixSiderbar) {
+        console.log(this.fixSiderbar || this.mode === 'inline')
+        if (this.fixSiderbar || this.mode === 'inline') {
           style['height'] = 'calc(100% - 59px)'
           style['overflow'] = 'auto'
           style['overflow-x'] = 'hidden'
@@ -66,7 +83,10 @@
       }
     },
     methods: {
-      onSelect (obj) {
+      jjjjj() {
+        this.lalal = !this.lalal
+      },
+      onSelect(obj) {
         this.$emit('menuSelect', obj)
       }
     }
@@ -81,6 +101,7 @@
     ul.ant-menu {
 
       /* 定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+
       &::-webkit-scrollbar {
         width: @scrollBarSize;
         height: @scrollBarSize;
@@ -103,11 +124,13 @@
       -ms-scroll-snap-points-x: snapList(100%, 200%, 300%, 400%, 500%);
 
       /* 定义滚动条轨道 */
+
       &::-webkit-scrollbar-track {
         background-color: transparent;
       }
 
       /* 定义滑块 */
+
       &::-webkit-scrollbar-thumb {
         border-radius: @scrollBarSize;
         background-color: #eee;
@@ -124,6 +147,7 @@
     }
 
     /** 暗色系滚动条样式 */
+
     &.dark ul.ant-menu {
       &::-webkit-scrollbar-thumb {
         background-color: #666666;
